@@ -2,12 +2,11 @@ package cmds
 
 import (
 	"fmt"
-	"strconv"
-	"time"
-
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strconv"
+	"time"
 )
 
 // Pod 命令
@@ -24,7 +23,60 @@ func init() {
 	podUpdateCmd.Flags().StringVar(&podUpdateName, "name", "", "pod name")
 	podUpdateCmd.Flags().StringVar(&podUpdateImage, "image", "", "image name")
 	podDeleteCmd.Flags().StringVar(&podDeleteName, "name", "", "pod name")
+	podCheckCmd.Flags().StringVar(&podGetName, "name", "", "pod name")
 
+}
+
+
+//pod check 命令
+
+var podCheckName string
+var podCheckCmd = cobra.Command{
+	Use: "check",
+	Short: "check pod",
+	Run: func (cmd *cobra.Command, args []string){
+		if namespace == ""{
+			cmd.Help()
+			return
+		}
+		// 创建 Kubernetes 客户端对象
+		k8sClient, err := createK8SClient()
+		if err != nil {
+			fmt.Println("Err:", err)
+			return
+		}
+		// 根据 podGetName 参数是否为空来决定显示单个 Pod 信息还是所有 Pod 信息
+		listOption := metav1.ListOptions{}
+		// 如果指定了 Pod Name，那么只获取单个 Pod 的信息
+		if podGetName != "" {
+			listOption.FieldSelector = fmt.Sprintf("metadata.name=%s", podGetName)
+		}
+
+		// 调用 List 接口获取 Pod 列表
+		if namespace == "all"{
+			namespace = ""
+		}
+		podList, err := k8sClient.CoreV1().Pods(namespace).List(listOption)
+		if err != nil {
+			fmt.Println("Err:", err)
+			return
+		}
+		if podCheckName != "" {
+			listOption.FieldSelector = fmt.Sprintf("metadata.name=%s", podCheckName)
+		}
+
+		formatPrint := "%-50s\t%s\n"
+		fmt.Printf(formatPrint,"NAME", "STATUS")
+		for _, pod := range podList.Items {
+
+			if pod.Status.Phase == "Running" {
+				//fmt.Println(pod.Status.Phase)
+
+				fmt.Printf(formatPrint, pod.Name, pod.Status.Phase)
+			}
+		}
+
+	},
 }
 
 //pod get 命令
@@ -53,13 +105,33 @@ var podGetCmd = cobra.Command{
 		}
 
 		// 调用 List 接口获取 Pod 列表
+		if namespace == "all"{
+			namespace = ""
+		}
 		podList, err := k8sClient.CoreV1().Pods(namespace).List(listOption)
 		if err != nil {
 			fmt.Println("Err:", err)
 			return
 		}
 
-		// 遍历 Pod List，显示 Pod 信息
+		/********************test************************/
+
+		//formatPrint := "%-50s\t%s\n"
+		//fmt.Printf(formatPrint,"NAME", "STATUS")
+		//for _, pod := range podList.Items {
+		//
+		//	if pod.Status.Phase == "Running" {
+		//		//fmt.Println(pod.Status.Phase)
+		//
+		//		fmt.Printf(formatPrint, pod.Name, pod.Status.Phase)
+		//	}
+		//}
+
+
+		/********************test************************/
+
+
+		//遍历 Pod List，显示 Pod 信息
 		printFmt := "%-30s\t%-10s\t%-10s\t%-10s\t%s\n"
 		fmt.Printf(printFmt, "NAME", "READY", "STATUS", "RESTARTS", "AGE")
 		for _, pod := range podList.Items {
@@ -73,7 +145,7 @@ var podGetCmd = cobra.Command{
 			}
 
 
-			// 打印输出
+			//打印输出
 			fmt.Printf(printFmt,
 				pod.Name,
 				strconv.Itoa(containerReadyCount)+"/"+strconv.Itoa(containerAllCount),

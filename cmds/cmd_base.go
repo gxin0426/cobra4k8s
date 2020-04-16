@@ -38,10 +38,10 @@ sg5XPmLsDpH0DR6IRNBZalZfYLtOP6b1C1W9
 -----END CERTIFICATE-----`
 
 	// K8SAPIServer 表示 Kubernetes API Server 地址
-	K8SAPIServer = `https://192.168.1.170:6443`
+	K8SAPIServer = `https://192.168.1.170:8443`
 
 	// K8SAPIToken 表示 ServiceAccount shiyanlou-admin 的 Secret 对应的 Token
-	K8SAPIToken = `ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklpSjkuZXlKcGMzTWlPaUpyZFdKbGNtNWxkR1Z6TDNObGNuWnBZMlZoWTJOdmRXNTBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5dVlXMWxjM0JoWTJVaU9pSnJkV0psTFhONWMzUmxiU0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVmpjbVYwTG01aGJXVWlPaUprWldaaGRXeDBMWFJ2YTJWdUxXeG9iVFkwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXpaWEoyYVdObExXRmpZMjkxYm5RdWJtRnRaU0k2SW1SbFptRjFiSFFpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1MWFXUWlPaUl6TmpsbFpXRTBNaTAwTWpsaExUUTJNREl0T1dVM01TMDBZVEZpWm1ZMU0yRTNZak1pTENKemRXSWlPaUp6ZVhOMFpXMDZjMlZ5ZG1salpXRmpZMjkxYm5RNmEzVmlaUzF6ZVhOMFpXMDZaR1ZtWVhWc2RDSjkubmFKSUVFcTFYX2F6Z01JV3dTb2ROUWNXTVhaREJFRGpnUlJfTlB4TGRPTnBrRFltbDNBWWhIeDNYR3Q0WlV0R2MxWjRwb2E4aDVaZ0xFYnVoR3BvUXg0V0ZweTFTUnFWd2Y1UnRnNzQ4a1dsLUJHekpUbWpJZDFLMV80V1FscUYxaWdVRGw2djhjOXlhaU5zNnhfOFotcFVTckhFQzFWTlJyUHpCSGdxWUFTN3FoTnNIZXdzTzdteUlBdzgwdXIyQWZEWnRubWZmdkVZVTVEZjlZeE9YVTZZZEgtVlQxNmU4SV9ESnNhUzlueFJyQXVZZXEzM2hfMlc0ZTVpclZiVkRZeG9VZklrd1lUNGptMGJFZzVmN3lIM0J0VlE5LWhmM3pqRU94M3poN3o5UklqVmU5T1dvUkVtVWdEbXJKbXJSbFpGcXpWV0x6akJZb0pzd19CaDhR`
+	K8SAPIToken = `eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJkZWZhdWx0LXRva2VuLWxobTY0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImRlZmF1bHQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIzNjllZWE0Mi00MjlhLTQ2MDItOWU3MS00YTFiZmY1M2E3YjMiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06ZGVmYXVsdCJ9.naJIEEq1X_azgMIWwSodNQcWMXZDBEDjgRR_NPxLdONpkDYml3AYhHx3XGt4ZUtGc1Z4poa8h5ZgLEbuhGpoQx4WFpy1SRqVwf5Rtg748kWl-BGzJTmjId1K1_4WQlqF1igUDl6v8c9yaiNs6x_8Z-pUSrHEC1VNRrPzBHgqYAS7qhNsHewsO7myIAw80ur2AfDZtnmffvEYU5Df9YxOXU6YdH-VT16e8I_DJsaS9nxRrAuYeq33h_2W4e5irVbVDYxoUfIkwYT4jm0bEg5f7yH3BtVQ9-hf3zjEOx3zh7z9RIjVe9OWoREmUgDmrJmrRlZFqzVWLzjBYoJsw_Bh8Q`
 
 	// K8SAPITimeout 表示超时时间
 	K8SAPITimeout = 30
@@ -73,6 +73,8 @@ func GetRootCommand() *cobra.Command {
 			}
 		},
 	}
+
+
 	// 添加全局选项参数
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
 
@@ -90,7 +92,8 @@ func addCommands(rootCmd *cobra.Command) {
 	podRootCmd.AddCommand(&podCreateCmd) 
 	podRootCmd.AddCommand(&podUpdateCmd)  
 	podRootCmd.AddCommand(&podGetCmd)  
-	podRootCmd.AddCommand(&podDeleteCmd)  
+	podRootCmd.AddCommand(&podDeleteCmd)
+	podRootCmd.AddCommand(&podCheckCmd)
 
 	// Service
 	serviceRootCmd.AddCommand(&serviceCreateCmd)
@@ -140,11 +143,24 @@ func createK8SClient() (k8sClient *k8s.Clientset, err error) {
 
 func CreateK8sClient() (client *k8s.Clientset, err error){
 	var kubeconfig *string
-	if home := homeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "config", "absolute path to the kubeconfig file")
+	h := homeDir()
+	fmt.Println(os.Getenv("HOME"))
+	fmt.Println(os.Getenv("USERPROFILE"))
+
+	h = filepath.Join(h, ".kube", "config")
+	_, erro := os.Stat(h)
+
+	if erro != nil {
+		kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
+	}else {
+		kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
 	}
+
+	//if  h != ""  {
+	//	kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
+	//} else {
+	//	kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
+	//}
 	flag.Parse()
 
 	//在 kubeconfig 中使用当前上下文环境，config 获取支持 url 和 path 方式
@@ -167,3 +183,5 @@ func homeDir() string {
 	}
 	return os.Getenv("USERPROFILE") // windows
 }
+
+
