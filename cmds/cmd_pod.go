@@ -72,8 +72,10 @@ var podGetCmd = cobra.Command{
 				}
 			}
 
+
 			// 打印输出
-			fmt.Printf(printFmt, pod.Name,
+			fmt.Printf(printFmt,
+				pod.Name,
 				strconv.Itoa(containerReadyCount)+"/"+strconv.Itoa(containerAllCount),
 				pod.Status.Phase,
 				strconv.Itoa(int(pod.Status.ContainerStatuses[0].RestartCount)),

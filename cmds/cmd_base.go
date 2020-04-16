@@ -1,7 +1,11 @@
 package cmds
 
 import (
+	"flag"
 	"fmt"
+	"k8s.io/client-go/tools/clientcmd"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -15,28 +19,29 @@ import (
 var (
 	// K8SCertificateData 表示 Kubernetes 服务端证书
 	K8SCertificateData = `-----BEGIN CERTIFICATE-----
-MIICyjCCAbKgAwIBAgIBADANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwprdWJl
-cm5ldGVzMCAXDTE5MTAzMTA3MDMxMVoYDzIxMTgxMDA3MDcwMzExWjAVMRMwEQYD
-VQQDEwprdWJlcm5ldGVzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
-tiRXUHv/L1jM8JsvLzr0jywnwzr+iPqhDKT4YBytzDyEEEbo5bkUK2mErP35W96u
-a1juMoiY6sz5VJllg4KHCR9IYd8MuaarHrdTfW5jDVpBXmhQwPhFY8NfSYl4rzLS
-97beQoINVVrRZBb95iaCqWeVHgMJRSH28dtIrQDvs0aOq45k1WbTkvw0ZtyfdEO5
-twtYxU0ur0w+tNdSAvNx+IOTsLxpe2+DdJ+PcvxSFF9q0bq7rpIeVRwyAas+0dan
-+VU1eddT3xYI27mXe6CacrHRfzo6YPr8iqJkl1Q1SJwdTDpTetfttcbN/TzaLDMY
-FpkLD62njuCBCdgP22YUZQIDAQABoyMwITAOBgNVHQ8BAf8EBAMCAqQwDwYDVR0T
-AQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAMcuT1f1+0sSb/SSzpRRs2byx
-QkfUE4d9a+ER67uiv394nEnNWB0a4rTv0ZoZsuaN5D3lMIPriOcdezpIVizdpW0z
-IWKQFe2/zkv9bYt5kVQbnMuE1lOOshUQcsSB5QYWK61dBkW3vHev7zCZ7iiCqU5m
-aFhC/bWTKIvG0bFuVxlNIHeKd68J4Iy5LrhgIMKxwDoQuybevAV/m6S40BHQm1bs
-Kw7osP2ErwDAL/l858TRbELMldYookR97XG1wR3qtVkAwb+J5VWeL9hcuId52/ke
-AAJURwhvfixRr4TVkV7QWVEbSb6ffhYKRoa2dTnBq0KrbSSZtbQA85P5CNWVlQ==
+MIIC5zCCAc+gAwIBAgIBATANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwptaW5p
+a3ViZUNBMB4XDTIwMDQxNDA2NTExNFoXDTMwMDQxMzA2NTExNFowFTETMBEGA1UE
+AxMKbWluaWt1YmVDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMCY
+FPQXjPzE1ntbc0lqLFWKbs5wFd/VYuexyOFeSSTj8oZx9ti8+/5MsCb6tvUZ6g5u
+eaIPD556frvFwPAYOB0gQ9PZjbRHHGaFE0vgNDKhXnyamZNYpiT+Bl3Do4K2Bncc
+Ryop3u38GMsQqQC1fqzdkOw9sq0mHgoHot1nVWDJtVJwDXGlhkxVhkjIkCs/4p88
+tX+7GMzk4y+SD0CMbqKsDwX3wLgddLXsh2PiIkBCx7Oj4hiuz8Fd3X7EX+koZJHg
+46NzvKnaPjNTAMc8EBoAclQThv7KW3O4zaaoYRLJlNiH+BrmQGYaJ8PL3hCfT+9I
+UuWiN0SpeWFxah1BM/8CAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgKkMB0GA1UdJQQW
+MBQGCCsGAQUFBwMCBggrBgEFBQcDATAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3
+DQEBCwUAA4IBAQBJXzDxATTRQZ4UUA4vn/9uA2vrA5q9EEgN9FAvF3/0HV1u2qTw
+bb0c81ASrC7UBQf1pisfK2HSTGDuC54pc6ODxd1jjQxkCrj7MW7BZo6eKfAFu5Wl
+KnoE/dsQNqc/vJvcdq5vXIhY+/sMnI3RrCRee7YNqvA4k0U/xv+kl46bQX6pleoA
+6siAulRD5bivT+bNQ8R3J4UqHSqBFuYHQGXsQuHTeTT0I2US3sZC+/TDiAGKBd9d
+PlgIuvgubWo9urcFN0W+5lrfWexcK2WSVPWQlJuTTG+OLADwbXLsgerXHnG3hxCI
+sg5XPmLsDpH0DR6IRNBZalZfYLtOP6b1C1W9
 -----END CERTIFICATE-----`
 
 	// K8SAPIServer 表示 Kubernetes API Server 地址
-	K8SAPIServer = `https://192.168.1.166:6443`
+	K8SAPIServer = `https://192.168.1.170:6443`
 
 	// K8SAPIToken 表示 ServiceAccount shiyanlou-admin 的 Secret 对应的 Token
-	K8SAPIToken = `eyJhbGciOiJSUzI1NiIsImtpZCI6Ikx5dDk3NTFEWExlUDU4TkVSZG0xY2lobDBUYU9OYWpqVWZOY3NLaW5VaU0ifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6InRlc3QtYWRtaW4tdG9rZW4tazVsZjgiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoidGVzdC1hZG1pbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjFjMTQ5NTdlLWUzMmQtNDc4Zi1iZmQ3LTEwZDczYWZkYjNjZiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OnRlc3QtYWRtaW4ifQ.FcnmdqEZYlp3dwofT1yNc5Ago7Ru6X1ABqingNy5PecNozh0Q13I3SR_BEXNq1_QTU9pSvaAuFrtOvYKer4pNrw6H1szTE5EGPEL_V6AvJkbQKcRwdGFcJ2qbnZ56NRzrrFBnobHS_zuYOZgHPpVqj3ASMBzT1K7VMlR9Q4PQnWkzqlAOIbG4VmE2ohzztBxft0GVHbd7SmtN8PzTfW65Nnm77GSDPcKVvaWD0dQdyzNopEaZ6MO0TwTqVw8sszxW8qn6gz3oiKvi1lPMFGz-7DIIuI3oMzZHn4W8krDDOZqpluMFk0ouJQZ68RT8_XR8DKhKC5l65bX0xkvDuSXAA`
+	K8SAPIToken = `ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklpSjkuZXlKcGMzTWlPaUpyZFdKbGNtNWxkR1Z6TDNObGNuWnBZMlZoWTJOdmRXNTBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5dVlXMWxjM0JoWTJVaU9pSnJkV0psTFhONWMzUmxiU0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVmpjbVYwTG01aGJXVWlPaUprWldaaGRXeDBMWFJ2YTJWdUxXeG9iVFkwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXpaWEoyYVdObExXRmpZMjkxYm5RdWJtRnRaU0k2SW1SbFptRjFiSFFpTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1MWFXUWlPaUl6TmpsbFpXRTBNaTAwTWpsaExUUTJNREl0T1dVM01TMDBZVEZpWm1ZMU0yRTNZak1pTENKemRXSWlPaUp6ZVhOMFpXMDZjMlZ5ZG1salpXRmpZMjkxYm5RNmEzVmlaUzF6ZVhOMFpXMDZaR1ZtWVhWc2RDSjkubmFKSUVFcTFYX2F6Z01JV3dTb2ROUWNXTVhaREJFRGpnUlJfTlB4TGRPTnBrRFltbDNBWWhIeDNYR3Q0WlV0R2MxWjRwb2E4aDVaZ0xFYnVoR3BvUXg0V0ZweTFTUnFWd2Y1UnRnNzQ4a1dsLUJHekpUbWpJZDFLMV80V1FscUYxaWdVRGw2djhjOXlhaU5zNnhfOFotcFVTckhFQzFWTlJyUHpCSGdxWUFTN3FoTnNIZXdzTzdteUlBdzgwdXIyQWZEWnRubWZmdkVZVTVEZjlZeE9YVTZZZEgtVlQxNmU4SV9ESnNhUzlueFJyQXVZZXEzM2hfMlc0ZTVpclZiVkRZeG9VZklrd1lUNGptMGJFZzVmN3lIM0J0VlE5LWhmM3pqRU94M3poN3o5UklqVmU5T1dvUkVtVWdEbXJKbXJSbFpGcXpWV0x6akJZb0pzd19CaDhR`
 
 	// K8SAPITimeout 表示超时时间
 	K8SAPITimeout = 30
@@ -131,4 +136,34 @@ func createK8SClient() (k8sClient *k8s.Clientset, err error) {
 	cfg.Timeout = time.Second * time.Duration(K8SAPITimeout)
 	k8sClient, err = k8s.NewForConfig(&cfg) 
 	return
+}
+
+func CreateK8sClient() (client *k8s.Clientset, err error){
+	var kubeconfig *string
+	if home := homeDir(); home != "" {
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = flag.String("kubeconfig", "config", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+
+	//在 kubeconfig 中使用当前上下文环境，config 获取支持 url 和 path 方式
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// 根据指定的 config 创建一个新的 clientset
+	client, err = k8s.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+	return
+}
+
+func homeDir() string {
+	if h := os.Getenv("HOME"); h != "" {
+		return h
+	}
+	return os.Getenv("USERPROFILE") // windows
 }
