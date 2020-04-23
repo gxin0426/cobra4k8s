@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	k8s "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8sshell/cmds"
 	"os"
 	"path/filepath"
-)
 
+	k8s "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+)
 
 func main() {
 	// 获取根命令
@@ -21,6 +21,8 @@ func main() {
 		return
 	}
 
+	//b, _ := ioutil.ReadFile("C:\\Users\\Administrator\\.kube\\config")
+	//fmt.Println(string(b))
 	//k8sClient, err := CreateK8sClient()
 	//if err != nil {
 	//	fmt.Println("Err :", err)
@@ -42,7 +44,7 @@ func main() {
 
 }
 
-//func createK8SClient() (k8sClient *k8s.Clientset, err error) {
+//func CreateK8sClient() (k8sClient *k8s.Clientset, err error) {
 //	cfg := restclient.Config{}
 //	cfg.Host = K8SAPIServer
 //	cfg.CAData = []byte(K8SCertificateData)
@@ -52,18 +54,18 @@ func main() {
 //	return
 //}
 
-func CreateK8sClient() (client *k8s.Clientset, err error){
+func CreateK8sClient() (client *k8s.Clientset, err error) {
 	var kubeconfig *string
 	h := homeDir()
-	fmt.Println(os.Getenv("HOME"))
-	fmt.Println(os.Getenv("USERPROFILE"))
+	//fmt.Println(os.Getenv("HOME"))
+	//fmt.Println(os.Getenv("USERPROFILE"))
 
 	h = filepath.Join(h, ".kube", "config")
 	_, erro := os.Stat(h)
 
 	if erro != nil {
 		kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
-	}else {
+	} else {
 		kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
 	}
 
@@ -94,4 +96,3 @@ func homeDir() string {
 	}
 	return os.Getenv("USERPROFILE") // windows
 }
-

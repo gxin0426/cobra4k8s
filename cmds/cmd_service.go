@@ -2,22 +2,23 @@ package cmds
 
 import (
 	"fmt"
-    "github.com/spf13/cobra"
-	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
-    "time"
+	"time"
+
+	"github.com/spf13/cobra"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func init(){
-	serviceCreateCmd.Flags().StringVar(&serviceCreateName,"name","","service name")
+func init() {
+	serviceCreateCmd.Flags().StringVar(&serviceCreateName, "name", "", "service name")
 	//更新Service的选项参数
-	serviceUpdateCmd.Flags().StringVar(&serviceUpdateName,"name","","service name")
+	serviceUpdateCmd.Flags().StringVar(&serviceUpdateName, "name", "", "service name")
 	//获取service的选项参数
-	serviceGetCmd.Flags().StringVar(&serviceGetName,"name","","service name")
+	serviceGetCmd.Flags().StringVar(&serviceGetName, "name", "", "service name")
 	//删除service 的选项参数
-	serviceDeleteCmd.Flags().StringVar(&serviceDeleteName,"name","","service name")
+	serviceDeleteCmd.Flags().StringVar(&serviceDeleteName, "name", "", "service name")
 
 }
 
@@ -34,13 +35,13 @@ var serviceCreateCmd = cobra.Command{
 	Use:   "create",
 	Short: "create a new service",
 	Run: func(cmd *cobra.Command, args []string) {
-		if serviceCreateName == "" || namespace == ""{
+		if serviceCreateName == "" || namespace == "" {
 			cmd.Help()
 			return
 		}
 		//创建 kubernetes 客户端对象
-		k8sClient, err := createK8SClient()
-		if err != nil{
+		k8sClient, err := CreateK8sClient()
+		if err != nil {
 			fmt.Println("Err:", err)
 			return
 		}
@@ -56,30 +57,30 @@ var serviceCreateCmd = cobra.Command{
 		//设置Service 端口
 		newServiceSpec.Ports = []v1.ServicePort{
 			v1.ServicePort{
-				Name: fmt.Sprintf("6666-%s",serviceCreateName),
-				Port: 9090,
+				Name:       fmt.Sprintf("6666-%s", serviceCreateName),
+				Port:       9090,
 				TargetPort: intstr.FromInt(9090),
-				Protocol: v1.ProtocolTCP,
+				Protocol:   v1.ProtocolTCP,
 			},
 		}
 
-			//设置 ServiceType 为 NodePort
-			newServiceSpec.Type = v1.ServiceTypeNodePort
-			//设置Service的各个参数
-			newService.Spec = newServiceSpec 
-			newService.Name = serviceCreateName
-			newService.Namespace = namespace
+		//设置 ServiceType 为 NodePort
+		newServiceSpec.Type = v1.ServiceTypeNodePort
+		//设置Service的各个参数
+		newService.Spec = newServiceSpec
+		newService.Name = serviceCreateName
+		newService.Namespace = namespace
 
-			//调用Create 接口创建
+		//调用Create 接口创建
 
-			_, err = k8sClient.CoreV1().Services(namespace).Create(&newService)
-			if err != nil{
-				fmt.Println(err)
-				return
-			}
+		_, err = k8sClient.CoreV1().Services(namespace).Create(&newService)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-			fmt.Println("success !!!")
-		
+		fmt.Println("success !!!")
+
 	},
 }
 
@@ -90,31 +91,31 @@ var serviceUpdateCmd = cobra.Command{
 	Use:   "update",
 	Short: "update a service",
 	Run: func(cmd *cobra.Command, args []string) {
-		if serviceUpdateName == "" || namespace == ""{
+		if serviceUpdateName == "" || namespace == "" {
 			cmd.Help()
 			return
 		}
 
-		k8sClient, err := createK8SClient()
+		k8sClient, err := CreateK8sClient()
 		if err != nil {
 			fmt.Println("err :", err)
-			
+
 		}
 
 		//获取指定的Service 对象
 		getOptions := metav1.GetOptions{}
 		service, err := k8sClient.CoreV1().Services(namespace).Get(serviceUpdateName, getOptions)
-		if err != nil{
-			fmt.Println("err:",err)
+		if err != nil {
+			fmt.Println("err:", err)
 			return
 		}
 
 		//设置原有Service暴露的端口 增加 9091
 		service.Spec.Ports = append(service.Spec.Ports, v1.ServicePort{
-			Name: fmt.Sprintf("tcp-9091-%s",serviceUpdateName),
-			Port: 9091,
+			Name:       fmt.Sprintf("tcp-9091-%s", serviceUpdateName),
+			Port:       9091,
 			TargetPort: intstr.FromInt(9091),
-			Protocol: v1.ProtocolTCP,
+			Protocol:   v1.ProtocolTCP,
 		})
 		// 调用Update接口创建
 		_, err = k8sClient.CoreV1().Services(namespace).Update(service)
@@ -132,13 +133,13 @@ var serviceGetCmd = cobra.Command{
 	Use:   "get",
 	Short: "get service or service list",
 	Run: func(cmd *cobra.Command, args []string) {
-		if namespace == ""{
+		if namespace == "" {
 			cmd.Help()
 			return
 		}
 		//创建 k8s客户端对象
-		k8sClient, err := createK8SClient()
-		if err != nil{
+		k8sClient, err := CreateK8sClient()
+		if err != nil {
 			fmt.Println(err)
 			return
 		}
@@ -146,13 +147,13 @@ var serviceGetCmd = cobra.Command{
 		//根据 serviceGetName 参数是否为空来决定显示单个Service信息还是所有Service信息
 		listOption := metav1.ListOptions{}
 		//如果指定了Service Name 那么只获取单个 Service 的信息
-		if serviceGetName != ""{
-			listOption.FieldSelector = fmt.Sprintf("metadata.name=%s",serviceGetName)
+		if serviceGetName != "" {
+			listOption.FieldSelector = fmt.Sprintf("metadata.name=%s", serviceGetName)
 		}
 
 		//调用List 接口获取Service列表
 		serviceList, err := k8sClient.CoreV1().Services(namespace).List(listOption)
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			return
 		}
@@ -160,17 +161,17 @@ var serviceGetCmd = cobra.Command{
 		//遍历Service List 显示 Service 信息
 
 		printFmt := "%-10s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\n"
-		fmt.Printf(printFmt,"NAME","TYPE","CLUSTER-IP","EXTERNAL-IP","PORT","AGE")
-		for _, service := range serviceList.Items{
+		fmt.Printf(printFmt, "NAME", "TYPE", "CLUSTER-IP", "EXTERNAL-IP", "PORT", "AGE")
+		for _, service := range serviceList.Items {
 			//格式化 ServicePort
 			servicePorts := make([]string, 0, len(service.Spec.Ports))
-			for _, p := range service.Spec.Ports{
+			for _, p := range service.Spec.Ports {
 				servicePorts = append(servicePorts, fmt.Sprintf("%d:%d/%s", p.Port, p.NodePort, p.Protocol))
 
 			}
 			//格式化External IP
 			externalIPs := make([]string, 0, len(service.Spec.ExternalIPs))
-			for _, ip := range service.Spec.ExternalIPs{
+			for _, ip := range service.Spec.ExternalIPs {
 				externalIPs = append(externalIPs, ip)
 			}
 			var externalIPsStr = "<none>"
@@ -180,10 +181,9 @@ var serviceGetCmd = cobra.Command{
 
 			//打印输出
 			fmt.Printf(printFmt, service.Name, service.Spec.Type, service.Spec.ClusterIP, externalIPsStr,
-			strings.Join(servicePorts, ","), time.Now().Sub(service.GetCreationTimestamp().Time).String())
+				strings.Join(servicePorts, ","), time.Now().Sub(service.GetCreationTimestamp().Time).String())
 
 		}
-
 
 	},
 }
@@ -195,15 +195,15 @@ var serviceDeleteCmd = cobra.Command{
 	Aliases: []string{"del", "rm"},
 	Short:   "delete a service",
 	Run: func(cmd *cobra.Command, args []string) {
-		if serviceDeleteName == "" || namespace == ""{
-			 cmd.Help()
-			 return
+		if serviceDeleteName == "" || namespace == "" {
+			cmd.Help()
+			return
 		}
 
-		k8sClient, err := createK8SClient()
-		if err != nil{
+		k8sClient, err := CreateK8sClient()
+		if err != nil {
 			fmt.Println("err", err)
-			 return
+			return
 		}
 
 		//可选的删除选项参数

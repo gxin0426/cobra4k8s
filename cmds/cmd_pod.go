@@ -2,13 +2,16 @@ package cmds
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+	k8s "k8s.io/client-go/kubernetes"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strconv"
-	"time"
 )
 
+
+	var k8sclient *k8s.Clientset
 // Pod 命令
 var podRootCmd = cobra.Command{
 	Use:   "pod",
@@ -17,6 +20,7 @@ var podRootCmd = cobra.Command{
 
 func init() {
 	// 创建 Pod 的选项参数
+	k8sclient, _ = CreateK8sClient()
 	podCreateCmd.Flags().StringVar(&podCreateName, "name", "", "pod name")
 	podCreateCmd.Flags().StringVar(&podCreateImage, "image", "", "image name")
 	podGetCmd.Flags().StringVar(&podGetName, "name", "", "pod name")
@@ -25,26 +29,22 @@ func init() {
 	podDeleteCmd.Flags().StringVar(&podDeleteName, "name", "", "pod name")
 	podCheckCmd.Flags().StringVar(&podGetName, "name", "", "pod name")
 
-}
 
+}
 
 //pod check 命令
 
 var podCheckName string
 var podCheckCmd = cobra.Command{
-	Use: "check",
+	Use:   "check",
 	Short: "check pod",
-	Run: func (cmd *cobra.Command, args []string){
-		if namespace == ""{
+	Run: func(cmd *cobra.Command, args []string) {
+		if namespace == "" {
 			cmd.Help()
 			return
 		}
 		// 创建 Kubernetes 客户端对象
-		k8sClient, err := createK8SClient()
-		if err != nil {
-			fmt.Println("Err:", err)
-			return
-		}
+
 		// 根据 podGetName 参数是否为空来决定显示单个 Pod 信息还是所有 Pod 信息
 		listOption := metav1.ListOptions{}
 		// 如果指定了 Pod Name，那么只获取单个 Pod 的信息
@@ -53,10 +53,10 @@ var podCheckCmd = cobra.Command{
 		}
 
 		// 调用 List 接口获取 Pod 列表
-		if namespace == "all"{
+		if namespace == "all" {
 			namespace = ""
 		}
-		podList, err := k8sClient.CoreV1().Pods(namespace).List(listOption)
+		podList, err := k8sclient.CoreV1().Pods(namespace).List(listOption)
 		if err != nil {
 			fmt.Println("Err:", err)
 			return
@@ -66,7 +66,7 @@ var podCheckCmd = cobra.Command{
 		}
 
 		formatPrint := "%-50s\t%s\n"
-		fmt.Printf(formatPrint,"NAME", "STATUS")
+		fmt.Printf(formatPrint, "NAME", "STATUS")
 		for _, pod := range podList.Items {
 
 			if pod.Status.Phase == "Running" {
@@ -91,11 +91,11 @@ var podGetCmd = cobra.Command{
 		}
 
 		// 创建 Kubernetes 客户端对象
-		k8sClient, err := createK8SClient()
-		if err != nil {
-			fmt.Println("Err:", err)
-			return
-		}
+		//k8sClient, err := CreateK8sClient()
+		//if err != nil {
+		//	fmt.Println("Err:", err)
+		//	return
+		//}
 
 		// 根据 podGetName 参数是否为空来决定显示单个 Pod 信息还是所有 Pod 信息
 		listOption := metav1.ListOptions{}
@@ -105,10 +105,10 @@ var podGetCmd = cobra.Command{
 		}
 
 		// 调用 List 接口获取 Pod 列表
-		if namespace == "all"{
+		if namespace == "all" {
 			namespace = ""
 		}
-		podList, err := k8sClient.CoreV1().Pods(namespace).List(listOption)
+		podList, err := k8sclient.CoreV1().Pods(namespace).List(listOption)
 		if err != nil {
 			fmt.Println("Err:", err)
 			return
@@ -127,9 +127,7 @@ var podGetCmd = cobra.Command{
 		//	}
 		//}
 
-
 		/********************test************************/
-
 
 		//遍历 Pod List，显示 Pod 信息
 		printFmt := "%-30s\t%-10s\t%-10s\t%-10s\t%s\n"
@@ -143,7 +141,6 @@ var podGetCmd = cobra.Command{
 					containerReadyCount++
 				}
 			}
-
 
 			//打印输出
 			fmt.Printf(printFmt,
@@ -209,14 +206,14 @@ var podCreateCmd = cobra.Command{
 		newPod.Spec = newPodSpec
 
 		// 创建 Kubernetes 的客户端
-		k8sClient, err := createK8SClient()
-		if err != nil {
-			fmt.Println("Err:", err)
-			return
-		}
+		//k8sClient, err := CreateK8sClient()
+		//if err != nil {
+		//	fmt.Println("Err:", err)
+		//	return
+		//}
 
 		// 调用 Create 的接口方法
-		_, err = k8sClient.CoreV1().Pods(namespace).Create(&newPod)
+		_, err := k8sclient.CoreV1().Pods(namespace).Create(&newPod)
 		if err != nil {
 			fmt.Println("Err:", err)
 			return
@@ -239,11 +236,11 @@ var podUpdateCmd = cobra.Command{
 			return
 		}
 		fmt.Println("Updating pod", podUpdateName, "with image", podUpdateImage)
-		k8sClient, err := createK8SClient()
-		if err != nil {
-			fmt.Println("Err :", err)
-			return
-		}
+		//k8sClient, err := CreateK8sClient()
+		//if err != nil {
+		//	fmt.Println("Err :", err)
+		//	return
+		//}
 
 		//删除旧的pod
 		var deleteGracePeriodSeconds int64 = 0
@@ -251,7 +248,7 @@ var podUpdateCmd = cobra.Command{
 			//设置宽限时间为0，立刻删除pod
 			GracePeriodSeconds: &deleteGracePeriodSeconds,
 		}
-		err = k8sClient.CoreV1().Pods(namespace).Delete(podUpdateName, &deleteOption)
+		err := k8sclient.CoreV1().Pods(namespace).Delete(podUpdateName, &deleteOption)
 		if err != nil {
 			fmt.Println("Err :", err)
 			return
@@ -288,7 +285,7 @@ var podUpdateCmd = cobra.Command{
 		updatePod.Spec = updatePodSpec
 
 		//调用Create 的接口方法
-		_, err = k8sClient.CoreV1().Pods(namespace).Create(&updatePod)
+		_, err = k8sclient.CoreV1().Pods(namespace).Create(&updatePod)
 		if err != nil {
 			fmt.Println("err :", err)
 			return
@@ -313,7 +310,7 @@ var podDeleteCmd = cobra.Command{
 		}
 
 		//创建k8s 客户端对象
-		k8sClient, err := createK8SClient()
+		k8sClient, err := CreateK8sClient()
 		if err != nil {
 			fmt.Println("Err :", err)
 			return

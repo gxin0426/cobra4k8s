@@ -1,23 +1,24 @@
 package cmds
 
 import (
-    "fmt"
-    "io/ioutil"
-    "os"
-	"k8s.io/api/core/v1"
-	"github.com/spf13/cobra"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
-    "time"
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
+
+	"github.com/spf13/cobra"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func init(){
+func init() {
 	//create secret option parameter
 	secretCreateCmd.Flags().StringVar(&secretCreateName, "name", "", "secret name")
 	secretCreateCmd.Flags().StringVar(&secretCreateCertFile, "cert-file", "cert", "cert file")
 	secretCreateCmd.Flags().StringVar(&secretCreatePrivateKeyFile, "key-file", "key", "secret name")
 	//update secret option parameter
-	 
+
 	secretUpdateCmd.Flags().StringVar(&secretUpdateName, "name", "", "secret name")
 	secretUpdateCmd.Flags().StringVar(&secretUpdateCertFile, "cert-file", "", "cert file")
 	secretUpdateCmd.Flags().StringVar(&secretUpdatePrivateKeyFile, "key-file", "", "private key file")
@@ -43,12 +44,12 @@ var secretCreateCmd = cobra.Command{
 	Use:   "create",
 	Short: "create a new secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		if secretCreateName == "" || secretCreatePrivateKeyFile == "" || namespace == ""{
+		if secretCreateName == "" || secretCreatePrivateKeyFile == "" || namespace == "" {
 			cmd.Help()
 			return
 		}
 		// create k8s client
-		k8sClient, err := createK8SClient()
+		k8sClient, err := CreateK8sClient()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -57,8 +58,8 @@ var secretCreateCmd = cobra.Command{
 		//读取Https的证书和秘钥
 		certData, err := readFileContent(secretCreateCertFile)
 		if err != nil {
-			 fmt.Println("Err :", err)
-			 return
+			fmt.Println("Err :", err)
+			return
 		}
 
 		keyData, err := readFileContent(secretCreatePrivateKeyFile)
@@ -66,14 +67,14 @@ var secretCreateCmd = cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		
-		//create a secret 
+
+		//create a secret
 
 		newSecret := v1.Secret{
 			Type: v1.SecretTypeTLS,
 			StringData: map[string]string{
-				v1.TLSCertKey: string(certData),
-				v1.TLSPrivateKeyKey: string(keyData), 
+				v1.TLSCertKey:       string(certData),
+				v1.TLSPrivateKeyKey: string(keyData),
 			},
 		}
 
@@ -83,7 +84,7 @@ var secretCreateCmd = cobra.Command{
 		//调用Create 的接口方法
 		_, err = k8sClient.CoreV1().Secrets(namespace).Create(&newSecret)
 		if err != nil {
-			fmt.Println( err)
+			fmt.Println(err)
 			return
 		}
 
@@ -91,15 +92,15 @@ var secretCreateCmd = cobra.Command{
 	},
 }
 
-func readFileContent(filePath string)(fileContent []byte, err error){
+func readFileContent(filePath string) (fileContent []byte, err error) {
 	fp, openErr := os.Open(filePath)
 	if openErr != nil {
-		 fmt.Println(openErr)
-		 return
+		fmt.Println(openErr)
+		return
 	}
 	defer fp.Close()
 	fileContent, err = ioutil.ReadAll(fp)
-	if err != nil{
+	if err != nil {
 		return
 	}
 	return
@@ -113,12 +114,12 @@ var secretUpdateCmd = cobra.Command{
 	Use:   "update",
 	Short: "update a secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		if secretUpdateName == "" || secretUpdateCertFile == "" || namespace == ""{
+		if secretUpdateName == "" || secretUpdateCertFile == "" || namespace == "" {
 			cmd.Help()
 			return
 		}
 		//create k8s client
-		k8sClient, err := createK8SClient()
+		k8sClient, err := CreateK8sClient()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -132,16 +133,16 @@ var secretUpdateCmd = cobra.Command{
 		}
 
 		keyData, err := readFileContent(secretUpdatePrivateKeyFile)
-		if err != nil{
-			 fmt.Println(err)
-			  return
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 
 		// 创建新的Secret
 		updateSecret := v1.Secret{
 			Type: v1.SecretTypeTLS,
 			StringData: map[string]string{
-				v1.TLSCertKey: string(certData),
+				v1.TLSCertKey:       string(certData),
 				v1.TLSPrivateKeyKey: string(keyData),
 			},
 		}
@@ -152,9 +153,9 @@ var secretUpdateCmd = cobra.Command{
 		//调用update接口方法
 		_, err = k8sClient.CoreV1().Secrets(namespace).Update(&updateSecret)
 
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
-			 return
+			return
 		}
 		fmt.Println("success update !!!")
 	},
@@ -166,38 +167,38 @@ var secretGetCmd = cobra.Command{
 	Use:   "get",
 	Short: "get secret or secret list",
 	Run: func(cmd *cobra.Command, args []string) {
-		if namespace == ""{
+		if namespace == "" {
 			cmd.Help()
 			return
 		}
 
 		//create k8s client
-		k8sClient, err := createK8SClient()
-		if err != nil{
+		k8sClient, err := CreateK8sClient()
+		if err != nil {
 			fmt.Println(err)
 			return
 		}
 
 		//根据secretGetName参数是否为空来决定显示单个secret信息还是所有secret信息
-		listOption := metav1.ListOptions{} 
+		listOption := metav1.ListOptions{}
 		//如果指定了Secret Name 那么只获取单个secret的信息
-		if secretGetName != ""{
+		if secretGetName != "" {
 			listOption.FieldSelector = fmt.Sprintf("metadata.name = %s", secretGetName)
 		}
 		//调用list接口获取secret 列表
 		secretList, err := k8sClient.CoreV1().Secrets(namespace).List(listOption)
 		if err != nil {
 			fmt.Println(err)
-			 return
+			return
 		}
 
 		//遍历Secret List 显示 secret 信息
 		printFmt := "%-40s\t%-40s\t%-20s\t%-20s\n"
 		fmt.Printf(printFmt, "name", "type", "data", "age")
-		for _, secret := range secretList.Items{ 
+		for _, secret := range secretList.Items {
 			//打印输出
-			fmt.Printf(printFmt,secret.Name, secret.Type, strconv.Itoa(len(secret.Data)),
-			time.Now().Sub(secret.GetCreationTimestamp().Time))
+			fmt.Printf(printFmt, secret.Name, secret.Type, strconv.Itoa(len(secret.Data)),
+				time.Now().Sub(secret.GetCreationTimestamp().Time))
 		}
 
 	},
@@ -210,20 +211,20 @@ var secretDeleteCmd = cobra.Command{
 	Aliases: []string{"del", "rm"},
 	Short:   "delete a secret",
 	Run: func(cmd *cobra.Command, args []string) {
-		if secretDeleteName == "" || namespace == ""{
+		if secretDeleteName == "" || namespace == "" {
 			cmd.Help()
 			return
 		}
 
-		k8sClient, err := createK8SClient()
-		if err != nil{
+		k8sClient, err := CreateK8sClient()
+		if err != nil {
 			fmt.Println(err)
-			 return
+			return
 		}
 
 		deleteOption := metav1.DeleteOptions{}
 		err = k8sClient.CoreV1().Secrets(namespace).Delete(secretDeleteName, &deleteOption)
-		if err != nil{
+		if err != nil {
 			fmt.Println(err)
 			return
 		}

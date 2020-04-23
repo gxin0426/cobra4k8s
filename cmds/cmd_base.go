@@ -1,13 +1,12 @@
 package cmds
 
 import (
-	"flag"
-	"fmt"
-	"k8s.io/client-go/tools/clientcmd"
-	"os"
-	"path/filepath"
-	"time"
 
+	"fmt"
+	"path/filepath"
+	"os"
+	"time"
+	"k8s.io/client-go/tools/clientcmd"
 	"github.com/spf13/cobra"
 	k8s "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
@@ -57,14 +56,14 @@ func GetRootCommand() *cobra.Command {
 		Use: "k8sshell",
 		Run: func(cmd *cobra.Command, args []string) {
 			if version {
-				restclient, err := createK8SClient()
-				if err != nil { 
+				restclient, err := CreateK8sClient()
+				if err != nil {
 					fmt.Println("Err:", err)
 					return
 				}
 				// 通过 ServerVersion 方法来获取版本号
 				versionInfo, err := restclient.ServerVersion()
-				
+
 				if err != nil {
 					fmt.Println("Err:", err)
 					return
@@ -73,7 +72,6 @@ func GetRootCommand() *cobra.Command {
 			}
 		},
 	}
-
 
 	// 添加全局选项参数
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "namespace")
@@ -86,12 +84,12 @@ func GetRootCommand() *cobra.Command {
 	return &rootCmd
 }
 
-// addCommands 将各个命令拼装在一起 
-func addCommands(rootCmd *cobra.Command) { 
-	// Pod 
-	podRootCmd.AddCommand(&podCreateCmd) 
-	podRootCmd.AddCommand(&podUpdateCmd)  
-	podRootCmd.AddCommand(&podGetCmd)  
+// addCommands 将各个命令拼装在一起
+func addCommands(rootCmd *cobra.Command) {
+	// Pod
+	podRootCmd.AddCommand(&podCreateCmd)
+	podRootCmd.AddCommand(&podUpdateCmd)
+	podRootCmd.AddCommand(&podGetCmd)
 	podRootCmd.AddCommand(&podDeleteCmd)
 	podRootCmd.AddCommand(&podCheckCmd)
 
@@ -120,7 +118,7 @@ func addCommands(rootCmd *cobra.Command) {
 	deploymentRootCmd.AddCommand(&deploymentGetCmd)
 	deploymentRootCmd.AddCommand(&deploymentDeleteCmd)
 	deploymentRootCmd.AddCommand(&deploymentUpgradeCmd)
-    deploymentRootCmd.AddCommand(&deploymentRollbackCmd)
+	deploymentRootCmd.AddCommand(&deploymentRollbackCmd)
 
 	// 组装命令
 	rootCmd.AddCommand(&podRootCmd)
@@ -131,40 +129,45 @@ func addCommands(rootCmd *cobra.Command) {
 }
 
 // createK8SClient 根据鉴权信息创建 Kubernetes 的连接客户端
-func createK8SClient() (k8sClient *k8s.Clientset, err error) {
+func createK8sClient() (k8sClient *k8s.Clientset, err error) {
 	cfg := restclient.Config{}
 	cfg.Host = K8SAPIServer
 	cfg.CAData = []byte(K8SCertificateData)
 	cfg.BearerToken = K8SAPIToken
 	cfg.Timeout = time.Second * time.Duration(K8SAPITimeout)
-	k8sClient, err = k8s.NewForConfig(&cfg) 
+	k8sClient, err = k8s.NewForConfig(&cfg)
 	return
 }
 
-func CreateK8sClient() (client *k8s.Clientset, err error){
-	var kubeconfig *string
+func CreateK8sClient() (client *k8s.Clientset, err error) {
+	//var b []byte
 	h := homeDir()
-	fmt.Println(os.Getenv("HOME"))
-	fmt.Println(os.Getenv("USERPROFILE"))
+	//fmt.Println(os.Getenv("HOME"))
+	//fmt.Println(os.Getenv("USERPROFILE"))
 
 	h = filepath.Join(h, ".kube", "config")
-	_, erro := os.Stat(h)
+	//_, erro := os.Stat(h)
 
-	if erro != nil {
-		kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
-	}else {
-		kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
-	}
+	//if erro != nil {
+	//	b, _ = ioutil.ReadFile("F:\\go_project\\cobra4k8s\\config")
+	//	//kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
+	//} else {
+	//	b, _ = ioutil.ReadFile(h)
+	//
+	//	//kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
+	//}
 
 	//if  h != ""  {
 	//	kubeconfig = flag.String("kubeconfig", h, "(optional) absolute path to the kubeconfig file")
 	//} else {
 	//	kubeconfig = flag.String("kubeconfig", "F:\\go_project\\cobra4k8s\\config", "absolute path to the kubeconfig file")
 	//}
-	flag.Parse()
+	//flag.Parse()
 
 	//在 kubeconfig 中使用当前上下文环境，config 获取支持 url 和 path 方式
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+
+	//b, _ := ioutil.ReadFile("C:\\Users\\Administrator\\.kube\\config")
+	config, err := clientcmd.BuildConfigFromFlags("", h)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -183,5 +186,3 @@ func homeDir() string {
 	}
 	return os.Getenv("USERPROFILE") // windows
 }
-
-
